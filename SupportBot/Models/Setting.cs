@@ -1,6 +1,5 @@
 ﻿namespace SupportBot.Models;
 
-
 public class Settings
 {
     public string BotToken { get; set; }

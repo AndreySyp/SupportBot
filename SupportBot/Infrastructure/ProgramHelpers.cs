@@ -4,40 +4,35 @@ using Telegram.Bot.Types;
 
 namespace SupportBot;
 
-
-internal partial class Program
+public class ProgramHelpers
 {
-    public static async Task<bool> AddUser(Message? message, ITelegramBotClient client, CancellationToken token)
+    public static async Task<bool> AddUser(ITelegramBotClient client, Settings settings, HashSet<Models.User> users, Message? message, CancellationToken token)
     {
         string username = message.From.Username;
+        if (!users.All(x => x.Name != username)) return false;
 
-        if (users.All(x => x.Name != username))
-        {
-            ForumTopic forumTopic = await client.CreateForumTopicAsync(settings.Settings.GroupId, username, cancellationToken: token);
-            var t = new Models.User(forumTopic.Name, message.Chat.Id, forumTopic.MessageThreadId);
-            users.Add(t);
-            using (ApplicationContext db = new(settings.Settings.ConconnectionSQl))
-            {
-                db.Users.AddRange(t);
-                db.SaveChanges();
-            }
+        ForumTopic forumTopic = await client.CreateForumTopicAsync(settings.GroupId, username, cancellationToken: token);
 
-            return true;
-        }
+        Models.User user = new(username, message.Chat.Id, forumTopic.MessageThreadId);
+        users.Add(user);
 
-        return false;
+        using ApplicationContext db = new(settings.ConconnectionSQl);
+        db.Users.AddRange(user);
+        db.SaveChanges();
+
+        return true;
     }
 
-    public static async Task<Tuple<long, int?>> DefinitionIdAsync(Message? message, ITelegramBotClient client, CancellationToken token)
+    public static async Task<Tuple<long, int?>> DefinitionIdAsync(ITelegramBotClient client, Settings settings, HashSet<Models.User> users, Message? message, CancellationToken token)
     {
         long chatId;
         int? threadId;
 
         if (message.MessageThreadId == null)
         {
-            await AddUser(message, client, token);
+            await AddUser(client, settings, users, message, token);
 
-            chatId = settings.Settings.GroupId;
+            chatId = settings.GroupId;
             threadId = users.First(x => x.Name == message.From.Username).ThreadId;
         }
         else

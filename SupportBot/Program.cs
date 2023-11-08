@@ -1,26 +1,19 @@
-﻿using SupportBot.Infrastructure;
-using SupportBot.Models;
+﻿using SupportBot.Handles;
+using SupportBot.Infrastructure;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 
 namespace SupportBot;
 
-
-internal partial class Program
+internal class Program
 {
-    private static readonly Startup settings = new();
-    private static HashSet<Models.User> users = new();
-
-
     private static void Main(string[] args)
     {
-        using (ApplicationContext db = new(settings.Settings.ConconnectionSQl))
-        {
-            users = db.Users.ToHashSet();
-        }
-        var botClient = new TelegramBotClient(settings.Settings.BotToken);
+        Startup startup = new();
+        var botClient = new TelegramBotClient(startup.Settings.BotToken);
 
-        botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync);
+        HandleTelegramBot handleTelegramBot = new(startup.Settings);
+
+        botClient.StartReceiving(handleTelegramBot.HandleUpdateAsync, HandleTelegramBot.HandleErrorAsync);
 
         Console.WriteLine("Started");
         Console.ReadLine();

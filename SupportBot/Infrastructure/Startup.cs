@@ -3,7 +3,6 @@ using SupportBot.Models;
 
 namespace SupportBot.Infrastructure;
 
-
 public class Startup
 {
     public Startup()

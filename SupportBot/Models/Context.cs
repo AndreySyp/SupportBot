@@ -2,7 +2,6 @@
 
 namespace SupportBot.Models;
 
-
 public class ApplicationContext : DbContext
 {
     public DbSet<User> Users { get; set; } = null!;
